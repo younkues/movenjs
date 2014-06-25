@@ -95,18 +95,18 @@ var animation = {
 		case "all":
 			var totalStyle = "";
 			for(var i = 0; i < browserPrefixLength; ++i) {
-				totalStyle +=daylight.replace(sTemplatePrefix, browserPrefix[i], css);
+				totalStyle +=css.replaceAll(sTemplatePrefix, browserPrefix[i]);
 			}
 			return totalStyle;
 			break;
 		case -1:
 			return css;
 		default:
-			cssWithPrefix = daylight.replace(sTemplatePrefix, prefix, css);
+			cssWithPrefix = css.replaceAll(sTemplatePrefix, prefix);
 			if(prefix === "")
 			 	return cssWithPrefix;
 			 else
-			 	return cssWithPrefix + daylight.replace(sTemplatePrefix, "", css);
+			 	return cssWithPrefix + css.replaceAll(sTemplatePrefix, "");
 		 }
 	},
 	/**
@@ -181,7 +181,6 @@ var animation = {
 				cssList = cssTypeList[cssType];
 				if(this[cssType].has && !this[cssType].has(action))
 					continue;
-				
 				cssList.add(action, actionList[action]);
 				break;
 			}
@@ -191,7 +190,7 @@ var animation = {
 			totalStyle += cssList.get(prefix);
 		}
 		totalStyle = totalStyle.replaceAll(";", ";\n");
-		var cssStyle = daylight.replace(sTemplatePrefix, CONSTANT.browserPrefix[1], totalStyle);
+		var cssStyle = totalStyle.replaceAll(sTemplatePrefix, CONSTANT.browserPrefix[1]);
 		
 		return cssStyle;
 	},

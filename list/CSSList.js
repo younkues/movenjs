@@ -6,7 +6,10 @@
 	}
 	CSSList.prototype = {
 		add: function(name, value) {
-			 this.list[name] = value;
+			this.list[name] = value;
+		},
+		push: function(name, value) {
+			this.list[name] = value;			
 		},
 		get: function(prefix) {
 			var list = this.list;
