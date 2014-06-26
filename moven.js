@@ -412,7 +412,7 @@ animation.Layer = function Layer(selector, initMotion) {
 	
 	this.dl_object = daylight(selector);
 	
-	if(type === "element" || type === "daylight") {
+	if(daylight.isDaylightType(type) || type === "element") {
 		var id =  this.dl_object.attr("id");
 		var className =  this.dl_object.attr("class");
 		selector = id ? "#" + id  : "." + className.trim().replaceAll(" ", ".");
@@ -1185,7 +1185,7 @@ animation.Timeline = function Timeline(selector) {
 
 	var dl_object = this.dl_object = daylight(selector);
 	
-	if(type === "element" || type === "daylight") {
+	if(daylight.isDaylightType(type) || type === "element") {
 		var id =  this.dl_object.attr("id");
 		var className =  this.dl_object.attr("class");
 		selector = id ? "#" + id  : "." + className.trim().replaceAll(" ", " .");
@@ -1248,7 +1248,7 @@ timelinePrototype.getLayer = function(layer) {
 		_layer = layers[i];
 		if(is_string && _layer.id != layer)
 			continue;
-		else if((t === "daylight" || t === "element") && !_layer.dl_object.equal(layer))
+		else if((daylight.isDaylightType(t) || t === "element") && !_layer.dl_object.equal(layer))
 			continue;
 		else if(layer.constructor === animation.Layer &&  _layer != layer)
 			continue;
