@@ -29,6 +29,6 @@
 	daylight.defineGlobal("$CSSList", CSSList);
 	
 })(daylight.animation);
-//@{list/Transform.js}
-//@{list/Filter.js}
-//@{list/BrowserEffectCSSList.js}
+//@{Transform.js}
+//@{Filter.js}
+//@{BrowserEffectCSSList.js}

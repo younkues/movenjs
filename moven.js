@@ -11,39 +11,13 @@ window.requestAnimFrame = (function(){
 
 (function(daylight) {
 
-//content width에 따라 바뀔 수 있는 속성
-var lrtype = ["left", "right", "width", "margin-left", "margin-right", "padding-left", "padding-right"];
-//content height에 따라 바뀔 수 있는 속성
-var tbtype = ["top", "bottom", "height", "margin-top", "margin-bottom", "padding-top", "padding-bottom"];
-//숫자로 치환할 수 있는 타입
-var dtype = ["rotate", "opacity", "tx", "ty", "gtop", "gleft"];
-var notTransitionType = ["display", "position"];
-var dimensionType = ["px", "em", "%"]
+
 
 var sTemplatePrefix = "{prefix}";
 var sAuto = "?a";
 
 
-function _dot(a1,a2,b1,b2) {
-	if(b1 + b2 === 0)
-		return a1;
-	return a1 * b1 / (b1 + b2) + a2 * b2 / (b1 + b2);
-}
-function _abspx(a, p100) {
-	var v = parseFloat(a);
-	if(p100 && a.indexOf("%") > -1)
-		return v * p100 / 100;
-	else
-		return v;
-}
-function _getDimensionType(a) {
-	var length = dimensionType.length;
-	for(var i = 0; i < length; ++i) {
-		if(a.indexOf(dimensionType[i]) != -1)
-			return dimensionType[i];
-		}
-	return "";
-}
+
 var animation = {
 	isActivateAnimation: function() {
 		var browser = daylight.browser();
@@ -1012,7 +986,6 @@ layerPrototype.getTimeMotion = function(time, is_start, is_not_transition) {
 			motions[property] = value;
 		}
 
-		//_dot(time - prevMotion.time, nextMotion.time - time)	
 	}
 	motions.time = time;
 	return motions;	
