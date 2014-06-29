@@ -943,86 +943,7 @@ layerPrototype.indexOfNextMotionWithTime = function(time) {
 	}
 	return -1;
 }
-/**
-*
-* @param {number} time 애니메이션이 재생되고 있는 시간의 위치
-* @param {string} property 찾고 싶은 CSS 속성
-* @param {object} prevMotion time 이전의 property를 가지고 있는 모션.
-* @param {object} nextvMotion time 이후의 property를 가지고 있는 모션.
-* @return {string | number} 이전 시간과 이후 시간을 현재시간에 비례하여 내적을 한 값을 반환한다.
-* @desc  이전 시간과 이후 시간을 현재시간에 비례하는 값을 찾아준다.
-*/
-layerPrototype.getTimeValue = function(time, property, prev, next) {
-	var prevMotion = prev.hasOwnProperty(property) ? prev[property] : prev[property + sAuto] ;
-	var nextMotion = next.hasOwnProperty(property) ? next[property] : next[property + sAuto];
-	var dimension = "";
-	
-	
-	if(prevMotion === nextMotion)
-		return prevMotion;
-		
-	var value = prevMotion;
-	if(lrtype.indexOf(property) !== -1)
-		dimension =  "width";
-	else if(tbtype.indexOf(property) !== -1)
-		dimension = "height";
-	else if(dtype.indexOf(property) !== -1)
-		dimension = "dimension";
-	
-	var prevTime = time - prev.time;
-	prevTime = prevTime >= 0 ? prevTime : 0;
-	var nextTime = next.time - time;
 
-	try {
-		if(dimension === "width" || dimension === "height") {
-			var p100 = this.dl_object.dimension(dimension);//100퍼센트 기준으로 수치
-	
-			prevMotion = _abspx(prevMotion, p100);
-			nextMotion = _abspx(nextMotion, p100);
-			value = _dot(prevMotion, nextMotion, nextTime, prevTime) +"px";
-		} else if(dimension === "dimension") {
-
-			var oprevMotion;
-			prevMotion = _abspx(prevMotion);
-			nextMotion = _abspx(nextMotion);
-			
-			if(prevMotion === nextMotion)
-				return oprevMotion;
-			
-			//console.log(prevMotion, nextMotion);
-			value = _dot(prevMotion, nextMotion, nextTime, prevTime);
-			//console.log(property, value, prevMotion, nextMotion);
-			switch(property) {
-			case "rotate":
-				value = value + "deg";
-				break;
-			case "tx":
-			case "ty":
-			case "tz":
-			case "gtop":
-			case "gleft":
-				value = value + "px";
-				break;
-			}
-		} else {
-			switch(property) {
-			case "scale":
-				var fromScale = prevMotion.split(",");
-				var toScale = nextMotion.split(",");
-				var xScale = _dot(parseFloat(fromScale[0]), parseFloat(toScale[0]), nextTime, prevTime);
-				var yScale = _dot(parseFloat(fromScale[1]), parseFloat(toScale[1]), nextTime, prevTime);
-				return xScale +", " + yScale;
-			}		
-			if(animation.getTimeValue)
-				return animation.getTimeValue(this.dl_object, time, property, prev, next);
-			else
-				return "transition";
-		}
-	} catch(e) {
-		console.error("time :" + time, "property : " + property, "value : " + value, e);
-	}
-	return value;
-}
 layerPrototype.getTimeMotion = function(time, is_start, is_not_transition) {
 	var properties = this.properties;
 	var length = properties.length;
@@ -1215,7 +1136,7 @@ var timelinePrototype = animation.Timeline.prototype;
 timelinePrototype.exportToJSON = function(is_object, is_minify) {
 	var id = "";
 	var dl_object = this.dl_object;
-	var element = dl_object.o[0];
+	var element = dl_object.get(0);
 	this.stop();
 	var layers = this.layers;
 	var layerLength = layers.length;
@@ -1706,6 +1627,8 @@ timelinePrototype.showAnimationBar = function() {
 	daylight.defineGlobal("$Timeline", animation.Timeline);
 	daylight.animation = animation;
 })(daylight);
-
+//@{timevalue.js}
+//@{import.js}
+//@{list/CSSList.js}
 
 

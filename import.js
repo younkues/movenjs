@@ -108,8 +108,6 @@
 	}
 	
 	animation.Timeline.import = function(json, position) {
-
-
 		
 		var name = json.n || json.name;
 		if(!name)

@@ -1,5 +1,4 @@
 (function(anim) {
-
 	
 	var CSSList = anim.CSSList = function AnimationList(list) {
 		this.list = list || {};
@@ -30,3 +29,6 @@
 	daylight.defineGlobal("$CSSList", CSSList);
 	
 })(daylight.animation);
+//@{list/Transform.js}
+//@{list/Filter.js}
+//@{list/BrowserEffectCSSList.js}

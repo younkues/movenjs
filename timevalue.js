@@ -1,4 +1,4 @@
-(function(da) {
+(function(animation) {
 	var dimensionType = ["px", "em", "%"];
 	function _dot(a1,a2,b1,b2) {
 		if(b1 + b2 === 0)
@@ -34,9 +34,9 @@
 		var b = parseInt(h.substring(4,6), 16);
 		return [r, g, b];
 	}
-	function hexToR(h) {return parseInt((cutHex(h)).substring(0,2),16)}
-	function hexToG(h) {return parseInt((cutHex(h)).substring(2,4),16)}
-	function hexToB(h) {return parseInt((cutHex(h)).substring(4,6),16)}
+	//function hexToR(h) {return parseInt((cutHex(h)).substring(0,2),16)}
+	//function hexToG(h) {return parseInt((cutHex(h)).substring(2,4),16)}
+	//function hexToB(h) {return parseInt((cutHex(h)).substring(4,6),16)}
 	function cutHex(h) {return (h.charAt(0)==="#") ? h.substring(1,7):h}
 	function hex4to6(h) {
 		var r = h.charAt(1);
@@ -150,31 +150,95 @@
 		}
 		return origin.join(" ");
 	}
-	da.getTimeValue = function(dlElement, time, property, prev, next) {
-		var prevMotion = prev.hasOwnProperty(property) ? prev[property] : prev[property + "?a"];
-		var nextMotion = next.hasOwnProperty(property) ? next[property] : next[property + "?a"];
+	/**
+	*
+	* @param {number} time 애니메이션이 재생되고 있는 시간의 위치
+	* @param {string} property 찾고 싶은 CSS 속성
+	* @param {object} prevMotion time 이전의 property를 가지고 있는 모션.
+	* @param {object} nextvMotion time 이후의 property를 가지고 있는 모션.
+	* @return {string | number} 이전 시간과 이후 시간을 현재시간에 비례하여 내적을 한 값을 반환한다.
+	* @desc  이전 시간과 이후 시간을 현재시간에 비례하는 값을 찾아준다.
+	*/
+	animation.Layer.prototype.getTimeValue = function(time, property, prev, next) {
+		var prevMotion = prev.hasOwnProperty(property) ? prev[property] : prev[property + sAuto] ;
+		var nextMotion = next.hasOwnProperty(property) ? next[property] : next[property + sAuto];
+		var dimension = "";
+		
+		if(prevMotion === nextMotion)
+			return prevMotion;
+			
+		var value = prevMotion;
+		if(lrtype.indexOf(property) !== -1)
+			dimension =  "width";
+		else if(tbtype.indexOf(property) !== -1)
+			dimension = "height";
+		else if(dtype.indexOf(property) !== -1)
+			dimension = "dimension";
+		
 		var prevTime = time - prev.time;
 		prevTime = prevTime >= 0 ? prevTime : 0;
 		var nextTime = next.time - time;
-		var value = "";
+	
+		try {
+			if(dimension === "width" || dimension === "height") {
+				var p100 = this.dl_object.dimension(dimension);//100퍼센트 기준으로 수치
 		
-
-		switch(property) {
-			case "margin":
-			case "padding":
-				value = margin(dlElement, prevMotion, nextMotion, prevTime, nextTime);
-				break;
-			case "origin":
-				value = origin(dlElement, prevMotion, nextMotion, prevTime, nextTime);
-				break;
-			case "color":
-			case "background-color":
-				value = color(prevMotion, nextMotion, prevTime, nextTime);
-				break;
-			default:
-				value = "transition";
+				prevMotion = _abspx(prevMotion, p100);
+				nextMotion = _abspx(nextMotion, p100);
+				value = _dot(prevMotion, nextMotion, nextTime, prevTime) +"px";
+			} else if(dimension === "dimension") {
+	
+				var oprevMotion;
+				prevMotion = _abspx(prevMotion);
+				nextMotion = _abspx(nextMotion);
+				
+				if(prevMotion === nextMotion)
+					return oprevMotion;
+				
+				//console.log(prevMotion, nextMotion);
+				value = _dot(prevMotion, nextMotion, nextTime, prevTime);
+				//console.log(property, value, prevMotion, nextMotion);
+				switch(property) {
+				case "rotate":
+					value = value + "deg";
+					break;
+				case "tx":
+				case "ty":
+				case "tz":
+				case "gtop":
+				case "gleft":
+					value = value + "px";
+					break;
+				}
+			} else {
+				switch(property) {
+				case "scale":
+					var fromScale = prevMotion.split(",");
+					var toScale = nextMotion.split(",");
+					var xScale = _dot(parseFloat(fromScale[0]), parseFloat(toScale[0]), nextTime, prevTime);
+					var yScale = _dot(parseFloat(fromScale[1]), parseFloat(toScale[1]), nextTime, prevTime);
+					return xScale +", " + yScale;
+				}		
+				var dlElement = this.dl_object;
+				switch(property) {
+					case "margin":
+					case "padding":
+						return margin(dlElement, prevMotion, nextMotion, prevTime, nextTime);
+						break;
+					case "origin":
+						return origin(dlElement, prevMotion, nextMotion, prevTime, nextTime);
+						break;
+					case "color":
+					case "background-color":
+						return color(prevMotion, nextMotion, prevTime, nextTime);
+						break;
+					default:
+						return "transition";
+				}
+			}
+		} catch(e) {
+			console.error("time :" + time, "property : " + property, "value : " + value, e);
 		}
-		//console.log(property + "   " + value);
 		return value;
 	}
 })(daylight.animation);

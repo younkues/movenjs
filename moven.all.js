@@ -95,18 +95,18 @@ var animation = {
 		case "all":
 			var totalStyle = "";
 			for(var i = 0; i < browserPrefixLength; ++i) {
-				totalStyle +=daylight.replace(sTemplatePrefix, browserPrefix[i], css);
+				totalStyle +=css.replaceAll(sTemplatePrefix, browserPrefix[i]);
 			}
 			return totalStyle;
 			break;
 		case -1:
 			return css;
 		default:
-			cssWithPrefix = daylight.replace(sTemplatePrefix, prefix, css);
+			cssWithPrefix = css.replaceAll(sTemplatePrefix, prefix);
 			if(prefix === "")
 			 	return cssWithPrefix;
 			 else
-			 	return cssWithPrefix + daylight.replace(sTemplatePrefix, "", css);
+			 	return cssWithPrefix + css.replaceAll(sTemplatePrefix, "");
 		 }
 	},
 	/**
@@ -181,7 +181,6 @@ var animation = {
 				cssList = cssTypeList[cssType];
 				if(this[cssType].has && !this[cssType].has(action))
 					continue;
-				
 				cssList.add(action, actionList[action]);
 				break;
 			}
@@ -191,7 +190,7 @@ var animation = {
 			totalStyle += cssList.get(prefix);
 		}
 		totalStyle = totalStyle.replaceAll(";", ";\n");
-		var cssStyle = daylight.replace(sTemplatePrefix, CONSTANT.browserPrefix[1], totalStyle);
+		var cssStyle = totalStyle.replaceAll(sTemplatePrefix, CONSTANT.browserPrefix[1]);
 		
 		return cssStyle;
 	},
@@ -413,7 +412,7 @@ animation.Layer = function Layer(selector, initMotion) {
 	
 	this.dl_object = daylight(selector);
 	
-	if(type === "element" || type === "daylight") {
+	if(daylight.isDaylightType(type) || type === "element") {
 		var id =  this.dl_object.attr("id");
 		var className =  this.dl_object.attr("class");
 		selector = id ? "#" + id  : "." + className.trim().replaceAll(" ", ".");
@@ -944,86 +943,7 @@ layerPrototype.indexOfNextMotionWithTime = function(time) {
 	}
 	return -1;
 }
-/**
-*
-* @param {number} time 애니메이션이 재생되고 있는 시간의 위치
-* @param {string} property 찾고 싶은 CSS 속성
-* @param {object} prevMotion time 이전의 property를 가지고 있는 모션.
-* @param {object} nextvMotion time 이후의 property를 가지고 있는 모션.
-* @return {string | number} 이전 시간과 이후 시간을 현재시간에 비례하여 내적을 한 값을 반환한다.
-* @desc  이전 시간과 이후 시간을 현재시간에 비례하는 값을 찾아준다.
-*/
-layerPrototype.getTimeValue = function(time, property, prev, next) {
-	var prevMotion = prev.hasOwnProperty(property) ? prev[property] : prev[property + sAuto] ;
-	var nextMotion = next.hasOwnProperty(property) ? next[property] : next[property + sAuto];
-	var dimension = "";
-	
-	
-	if(prevMotion === nextMotion)
-		return prevMotion;
-		
-	var value = prevMotion;
-	if(lrtype.indexOf(property) !== -1)
-		dimension =  "width";
-	else if(tbtype.indexOf(property) !== -1)
-		dimension = "height";
-	else if(dtype.indexOf(property) !== -1)
-		dimension = "dimension";
-	
-	var prevTime = time - prev.time;
-	prevTime = prevTime >= 0 ? prevTime : 0;
-	var nextTime = next.time - time;
 
-	try {
-		if(dimension === "width" || dimension === "height") {
-			var p100 = this.dl_object.dimension(dimension);//100퍼센트 기준으로 수치
-	
-			prevMotion = _abspx(prevMotion, p100);
-			nextMotion = _abspx(nextMotion, p100);
-			value = _dot(prevMotion, nextMotion, nextTime, prevTime) +"px";
-		} else if(dimension === "dimension") {
-
-			var oprevMotion;
-			prevMotion = _abspx(prevMotion);
-			nextMotion = _abspx(nextMotion);
-			
-			if(prevMotion === nextMotion)
-				return oprevMotion;
-			
-			//console.log(prevMotion, nextMotion);
-			value = _dot(prevMotion, nextMotion, nextTime, prevTime);
-			//console.log(property, value, prevMotion, nextMotion);
-			switch(property) {
-			case "rotate":
-				value = value + "deg";
-				break;
-			case "tx":
-			case "ty":
-			case "tz":
-			case "gtop":
-			case "gleft":
-				value = value + "px";
-				break;
-			}
-		} else {
-			switch(property) {
-			case "scale":
-				var fromScale = prevMotion.split(",");
-				var toScale = nextMotion.split(",");
-				var xScale = _dot(parseFloat(fromScale[0]), parseFloat(toScale[0]), nextTime, prevTime);
-				var yScale = _dot(parseFloat(fromScale[1]), parseFloat(toScale[1]), nextTime, prevTime);
-				return xScale +", " + yScale;
-			}		
-			if(animation.getTimeValue)
-				return animation.getTimeValue(this.dl_object, time, property, prev, next);
-			else
-				return "transition";
-		}
-	} catch(e) {
-		console.error("time :" + time, "property : " + property, "value : " + value, e);
-	}
-	return value;
-}
 layerPrototype.getTimeMotion = function(time, is_start, is_not_transition) {
 	var properties = this.properties;
 	var length = properties.length;
@@ -1186,7 +1106,7 @@ animation.Timeline = function Timeline(selector) {
 
 	var dl_object = this.dl_object = daylight(selector);
 	
-	if(type === "element" || type === "daylight") {
+	if(daylight.isDaylightType(type) || type === "element") {
 		var id =  this.dl_object.attr("id");
 		var className =  this.dl_object.attr("class");
 		selector = id ? "#" + id  : "." + className.trim().replaceAll(" ", " .");
@@ -1216,7 +1136,7 @@ var timelinePrototype = animation.Timeline.prototype;
 timelinePrototype.exportToJSON = function(is_object, is_minify) {
 	var id = "";
 	var dl_object = this.dl_object;
-	var element = dl_object.o[0];
+	var element = dl_object.get(0);
 	this.stop();
 	var layers = this.layers;
 	var layerLength = layers.length;
@@ -1249,7 +1169,7 @@ timelinePrototype.getLayer = function(layer) {
 		_layer = layers[i];
 		if(is_string && _layer.id != layer)
 			continue;
-		else if((t === "daylight" || t === "element") && !_layer.dl_object.equal(layer))
+		else if((daylight.isDaylightType(t) || t === "element") && !_layer.dl_object.equal(layer))
 			continue;
 		else if(layer.constructor === animation.Layer &&  _layer != layer)
 			continue;
@@ -1707,10 +1627,7 @@ timelinePrototype.showAnimationBar = function() {
 	daylight.defineGlobal("$Timeline", animation.Timeline);
 	daylight.animation = animation;
 })(daylight);
-
-
-
-(function(da) {
+(function(animation) {
 	var dimensionType = ["px", "em", "%"];
 	function _dot(a1,a2,b1,b2) {
 		if(b1 + b2 === 0)
@@ -1746,9 +1663,9 @@ timelinePrototype.showAnimationBar = function() {
 		var b = parseInt(h.substring(4,6), 16);
 		return [r, g, b];
 	}
-	function hexToR(h) {return parseInt((cutHex(h)).substring(0,2),16)}
-	function hexToG(h) {return parseInt((cutHex(h)).substring(2,4),16)}
-	function hexToB(h) {return parseInt((cutHex(h)).substring(4,6),16)}
+	//function hexToR(h) {return parseInt((cutHex(h)).substring(0,2),16)}
+	//function hexToG(h) {return parseInt((cutHex(h)).substring(2,4),16)}
+	//function hexToB(h) {return parseInt((cutHex(h)).substring(4,6),16)}
 	function cutHex(h) {return (h.charAt(0)==="#") ? h.substring(1,7):h}
 	function hex4to6(h) {
 		var r = h.charAt(1);
@@ -1862,34 +1779,99 @@ timelinePrototype.showAnimationBar = function() {
 		}
 		return origin.join(" ");
 	}
-	da.getTimeValue = function(dlElement, time, property, prev, next) {
-		var prevMotion = prev.hasOwnProperty(property) ? prev[property] : prev[property + "?a"];
-		var nextMotion = next.hasOwnProperty(property) ? next[property] : next[property + "?a"];
+	/**
+	*
+	* @param {number} time 애니메이션이 재생되고 있는 시간의 위치
+	* @param {string} property 찾고 싶은 CSS 속성
+	* @param {object} prevMotion time 이전의 property를 가지고 있는 모션.
+	* @param {object} nextvMotion time 이후의 property를 가지고 있는 모션.
+	* @return {string | number} 이전 시간과 이후 시간을 현재시간에 비례하여 내적을 한 값을 반환한다.
+	* @desc  이전 시간과 이후 시간을 현재시간에 비례하는 값을 찾아준다.
+	*/
+	animation.Layer.prototype.getTimeValue = function(time, property, prev, next) {
+		var prevMotion = prev.hasOwnProperty(property) ? prev[property] : prev[property + sAuto] ;
+		var nextMotion = next.hasOwnProperty(property) ? next[property] : next[property + sAuto];
+		var dimension = "";
+		
+		if(prevMotion === nextMotion)
+			return prevMotion;
+			
+		var value = prevMotion;
+		if(lrtype.indexOf(property) !== -1)
+			dimension =  "width";
+		else if(tbtype.indexOf(property) !== -1)
+			dimension = "height";
+		else if(dtype.indexOf(property) !== -1)
+			dimension = "dimension";
+		
 		var prevTime = time - prev.time;
 		prevTime = prevTime >= 0 ? prevTime : 0;
 		var nextTime = next.time - time;
-		var value = "";
+	
+		try {
+			if(dimension === "width" || dimension === "height") {
+				var p100 = this.dl_object.dimension(dimension);//100퍼센트 기준으로 수치
 		
-
-		switch(property) {
-			case "margin":
-			case "padding":
-				value = margin(dlElement, prevMotion, nextMotion, prevTime, nextTime);
-				break;
-			case "origin":
-				value = origin(dlElement, prevMotion, nextMotion, prevTime, nextTime);
-				break;
-			case "color":
-			case "background-color":
-				value = color(prevMotion, nextMotion, prevTime, nextTime);
-				break;
-			default:
-				value = "transition";
+				prevMotion = _abspx(prevMotion, p100);
+				nextMotion = _abspx(nextMotion, p100);
+				value = _dot(prevMotion, nextMotion, nextTime, prevTime) +"px";
+			} else if(dimension === "dimension") {
+	
+				var oprevMotion;
+				prevMotion = _abspx(prevMotion);
+				nextMotion = _abspx(nextMotion);
+				
+				if(prevMotion === nextMotion)
+					return oprevMotion;
+				
+				//console.log(prevMotion, nextMotion);
+				value = _dot(prevMotion, nextMotion, nextTime, prevTime);
+				//console.log(property, value, prevMotion, nextMotion);
+				switch(property) {
+				case "rotate":
+					value = value + "deg";
+					break;
+				case "tx":
+				case "ty":
+				case "tz":
+				case "gtop":
+				case "gleft":
+					value = value + "px";
+					break;
+				}
+			} else {
+				switch(property) {
+				case "scale":
+					var fromScale = prevMotion.split(",");
+					var toScale = nextMotion.split(",");
+					var xScale = _dot(parseFloat(fromScale[0]), parseFloat(toScale[0]), nextTime, prevTime);
+					var yScale = _dot(parseFloat(fromScale[1]), parseFloat(toScale[1]), nextTime, prevTime);
+					return xScale +", " + yScale;
+				}		
+				var dlElement = this.dl_object;
+				switch(property) {
+					case "margin":
+					case "padding":
+						return margin(dlElement, prevMotion, nextMotion, prevTime, nextTime);
+						break;
+					case "origin":
+						return origin(dlElement, prevMotion, nextMotion, prevTime, nextTime);
+						break;
+					case "color":
+					case "background-color":
+						return color(prevMotion, nextMotion, prevTime, nextTime);
+						break;
+					default:
+						return "transition";
+				}
+			}
+		} catch(e) {
+			console.error("time :" + time, "property : " + property, "value : " + value, e);
 		}
-		//console.log(property + "   " + value);
 		return value;
 	}
-})(daylight.animation);(function(daylight) {
+})(daylight.animation);
+(function(daylight) {
 	var animation = daylight.animation;
 	function errorMessage(message) {
 		console.error(message);
@@ -1999,8 +1981,6 @@ timelinePrototype.showAnimationBar = function() {
 	}
 	
 	animation.Timeline.import = function(json, position) {
-
-
 		
 		var name = json.n || json.name;
 		if(!name)
@@ -2027,15 +2007,18 @@ timelinePrototype.showAnimationBar = function() {
 		
 		return timeline;
 	}
-})(daylight);(function(anim) {
-
+})(daylight);
+(function(anim) {
 	
 	var CSSList = anim.CSSList = function AnimationList(list) {
 		this.list = list || {};
 	}
 	CSSList.prototype = {
 		add: function(name, value) {
-			 this.list[name] = value;
+			this.list[name] = value;
+		},
+		push: function(name, value) {
+			this.list[name] = value;			
 		},
 		get: function(prefix) {
 			var list = this.list;
@@ -2054,87 +2037,6 @@ timelinePrototype.showAnimationBar = function() {
 	};
 
 	daylight.defineGlobal("$CSSList", CSSList);
-	
-})(daylight.animation);
-(function(anim) {
-	var filterPrefix = ["", "-webkit-", "-ms-"];
-	var Filter = anim.Filter = function Filter() {
-		this.list = {};
-	}
-	
-	var FilterList = Filter.list = {};
-	var filterKeys = ["brightness", "blur", "grayscale", "contrast", "hue-rotate", "opacity", "saturate"];
-	var length = filterKeys, filter;
-	for(var i = 0; i < length; ++i) {
-		filter = filterKeys[i];
-		Filter.list[filter] = filter + "(?)";
-	}
-	Filter.has = function(name) {
-		return FilterList.hasOwnProperty(name);
-	}
-	daylight.extend(true, Filter.prototype, $CSSList.prototype);
-
-	Filter.prototype.get = function(prefix) {
-		var list = this.list;
-		var value;
-		var filter;
-		var sStyle = "{prefix}filter:";
-		var length = 0;
-		for(var name in list) {
-			value = list[name];
-			if(!FilterList.hasOwnProperty(name))
-				continue;
-				
-			filter = FilterList[name];
-			sStyle += " " +  filter.replace("?", list[name]);
-			++length;
-		}
-		if(length === 0)
-			return "";
-		
-		sStyle += ";";
-		return anim.prefixToBrowser(sStyle, prefix, filterPrefix);
-	};
-	
-	
-	daylight.defineGlobal("$Filter", Filter);
-	
-})(daylight.animation);
-(function(anim) {
-
-	var BrowserEffectCSSList = anim.BrowserEffectCSSList = function BrowserEffectCSSList() {
-		this.list = {};
-	}
-	var effectCSSList = BrowserEffectCSSList.list = {"origin" : "transform-origin:?", "transition":"transition:?"}
-	
-	BrowserEffectCSSList.has = function(name) {
-		return effectCSSList.hasOwnProperty(name);
-	}
-	daylight.extend(true, BrowserEffectCSSList.prototype, $CSSList.prototype);
-	BrowserEffectCSSList.prototype.get = function(prefix) {
-		var list = this.list;
-		var value;
-		var sStyle = "";
-		var length = 0;
-		var effectCSS;
-		for(var name in list) {
-			value = list[name];
-			if(!effectCSSList.hasOwnProperty(name))
-				continue;
-				
-			effectCSS = effectCSSList[name];
-			sStyle += "{prefix}" +  effectCSS.replace("?", list[name]) +";";
-			++length;
-		}
-		
-		if(length === 0)
-			return "";
-			
-		return anim.prefixToBrowser(sStyle, prefix);
-	};
-	
-	
-	daylight.defineGlobal("$BrowserEffectCSSList", BrowserEffectCSSList);
 	
 })(daylight.animation);
 (function(anim) {
@@ -2182,3 +2084,89 @@ if(action === "tx" || action === "ty" || action === "tz") {
 	daylight.defineGlobal("$Transform", transform);
 	
 })(daylight.animation);
+
+(function(anim) {
+	var filterPrefix = ["", "-webkit-", "-ms-"];
+	var Filter = anim.Filter = function Filter() {
+		this.list = {};
+	}
+	
+	var FilterList = Filter.list = {};
+	var filterKeys = ["brightness", "blur", "grayscale", "contrast", "hue-rotate", "opacity", "saturate"];
+	var length = filterKeys, filter;
+	for(var i = 0; i < length; ++i) {
+		filter = filterKeys[i];
+		Filter.list[filter] = filter + "(?)";
+	}
+	Filter.has = function(name) {
+		return FilterList.hasOwnProperty(name);
+	}
+	daylight.extend(true, Filter.prototype, $CSSList.prototype);
+
+	Filter.prototype.get = function(prefix) {
+		var list = this.list;
+		var value;
+		var filter;
+		var sStyle = "{prefix}filter:";
+		var length = 0;
+		for(var name in list) {
+			value = list[name];
+			if(!FilterList.hasOwnProperty(name))
+				continue;
+				
+			filter = FilterList[name];
+			sStyle += " " +  filter.replace("?", list[name]);
+			++length;
+		}
+		if(length === 0)
+			return "";
+		
+		sStyle += ";";
+		return anim.prefixToBrowser(sStyle, prefix, filterPrefix);
+	};
+	
+	
+	daylight.defineGlobal("$Filter", Filter);
+	
+})(daylight.animation);
+
+(function(anim) {
+
+	var BrowserEffectCSSList = anim.BrowserEffectCSSList = function BrowserEffectCSSList() {
+		this.list = {};
+	}
+	var effectCSSList = BrowserEffectCSSList.list = {"origin" : "transform-origin:?", "transition":"transition:?"}
+	
+	BrowserEffectCSSList.has = function(name) {
+		return effectCSSList.hasOwnProperty(name);
+	}
+	daylight.extend(true, BrowserEffectCSSList.prototype, $CSSList.prototype);
+	BrowserEffectCSSList.prototype.get = function(prefix) {
+		var list = this.list;
+		var value;
+		var sStyle = "";
+		var length = 0;
+		var effectCSS;
+		for(var name in list) {
+			value = list[name];
+			if(!effectCSSList.hasOwnProperty(name))
+				continue;
+				
+			effectCSS = effectCSSList[name];
+			sStyle += "{prefix}" +  effectCSS.replace("?", list[name]) +";";
+			++length;
+		}
+		
+		if(length === 0)
+			return "";
+			
+		return anim.prefixToBrowser(sStyle, prefix);
+	};
+	
+	
+	daylight.defineGlobal("$BrowserEffectCSSList", BrowserEffectCSSList);
+	
+})(daylight.animation);
+
+
+
