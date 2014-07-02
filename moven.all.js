@@ -1547,7 +1547,18 @@ timelinePrototype.showAnimationBar = function() {
 			var className = element.className;
 			className = className.replace("daylightAnimationLayer", "");
 			className = className.trim();
+			//n name
+			//i id
+			//ln layer-name
+			//ms motions
+			//p properties
+			//tt totalTime
+			//cn childNodes
+			//s style
 			var json = {n:element.nodeName, i:element.id, cn:className};
+			var layerName = element.getAttribute("layer-name");
+			if(layerName !== null && layerName !== "")
+				json.ln = layerName;
 			var node, value;
 			switch(json.name) {
 			case "IMG": json.src = element.src;break;
@@ -1919,8 +1930,9 @@ timelinePrototype.showAnimationBar = function() {
 		
 		var name = json.n || json.name;
 		var motions = json.ms || json.motions || [];
-		
-		
+		var layerName = json.ln || json.layerName || -1;
+
+			
 		if(!name)
 			return errorMessage("Nonamed 잘못된 형식입니다.");
 			
@@ -1933,7 +1945,8 @@ timelinePrototype.showAnimationBar = function() {
 		
 		element.setAttribute("style", style);
 		element.setAttribute("data-style", style);
-	
+		if(layerName !== -1)
+			element.setAttribute("layer-name", layerName);	
 		return element;
 	}
 	function create(json, timeline) {

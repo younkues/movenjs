@@ -1547,7 +1547,18 @@ timelinePrototype.showAnimationBar = function() {
 			var className = element.className;
 			className = className.replace("daylightAnimationLayer", "");
 			className = className.trim();
+			//n name
+			//i id
+			//ln layer-name
+			//ms motions
+			//p properties
+			//tt totalTime
+			//cn childNodes
+			//s style
 			var json = {n:element.nodeName, i:element.id, cn:className};
+			var layerName = element.getAttribute("layer-name");
+			if(layerName !== null && layerName !== "")
+				json.ln = layerName;
 			var node, value;
 			switch(json.name) {
 			case "IMG": json.src = element.src;break;

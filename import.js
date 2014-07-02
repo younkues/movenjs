@@ -64,8 +64,9 @@
 		
 		var name = json.n || json.name;
 		var motions = json.ms || json.motions || [];
-		
-		
+		var layerName = json.ln || json.layerName || -1;
+
+			
 		if(!name)
 			return errorMessage("Nonamed 잘못된 형식입니다.");
 			
@@ -78,7 +79,8 @@
 		
 		element.setAttribute("style", style);
 		element.setAttribute("data-style", style);
-	
+		if(layerName !== -1)
+			element.setAttribute("layer-name", layerName);	
 		return element;
 	}
 	function create(json, timeline) {
