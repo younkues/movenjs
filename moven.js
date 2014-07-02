@@ -1454,7 +1454,8 @@ timelinePrototype.start = function() {
 	
 	this.startTime = this.prevTime = Date.now();
 	this.nowTime = this.spendTime = 0;
-	requestAnimFrame(this.timer.bind(this));
+	if(this.is_timer)
+		requestAnimFrame(this.timer.bind(this));
 	this.is_start = true;
 	this.is_finish = false;
 	this.is_pause = false;
