@@ -90,8 +90,11 @@
 		var element = createElement(json);
 		
 		createLayer(timeline, element, json);
-		createchildNodes(json, element, timeline);
-		
+		if(daylight.hasClass(element, "day-text-editable")) {
+			element.innerHTML = json.cns.join("");
+		} else {
+			createchildNodes(json, element, timeline);
+		}
 		
 		return element;
 	}

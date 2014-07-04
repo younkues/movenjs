@@ -194,7 +194,7 @@
 		
 				prevMotion = _abspx(prevMotion, p100);
 				nextMotion = _abspx(nextMotion, p100);
-				value = _dot(prevMotion, nextMotion, nextTime, prevTime) +"px";
+				value = _dot(prevMotion, nextMotion, prevTime, nextTime) +"px";
 			} else if(dimension === "dimension") {
 	
 				var oprevMotion;
@@ -205,7 +205,7 @@
 					return oprevMotion;
 				
 				//console.log(prevMotion, nextMotion);
-				value = _dot(prevMotion, nextMotion, nextTime, prevTime);
+				value = _dot(prevMotion, nextMotion, prevTime, nextTime);
 				//console.log(property, value, prevMotion, nextMotion);
 				switch(property) {
 				case "rotate":
