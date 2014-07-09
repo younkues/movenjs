@@ -18,6 +18,9 @@ if(action === "tx" || action === "ty" || action === "tz") {
 	}
 }
 */
+	transform.prototype.getObject = function(prefix) {
+		
+	}
 	transform.prototype.get = function(prefix) {
 		var list = this.list;
 		var value;
@@ -34,18 +37,22 @@ if(action === "tx" || action === "ty" || action === "tz") {
 				continue;
 				
 			transform = transformList[name];
-			nOrder = this.oOrder[name] || 20;
+
 			
 			value = transform.replace("?", list[name]);
 			if(!this.oOrder.hasOwnProperty(name)) {
 				ret.push(value);
+				//console.debug(name, value);
+
 			} else {
-				nOrder = this.oOrder[name];
+				nOrder = this.oOrder[name] || 20;
 				nOrderIndex = 0;
+				aOrderLength = aOrder.length;
 				for(var i = 0; i < aOrderLength; ++i) {
 					if(nOrder > aOrder[i])
 						nOrderIndex = i + 1;
 				}
+				//console.debug(nOrderIndex);
 				aOrder.splice(nOrderIndex, 0, nOrder);
 				ret.splice(nOrderIndex, 0, value);
 			}

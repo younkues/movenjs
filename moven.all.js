@@ -540,7 +540,7 @@ layerPrototype.hasProperty = function(index, property) {
 	@return {motion} time 이전의 property를 가지고 있는 모션을 반환
 	@desc time 이전의 property를 가지고 있는 모션을 찾아준다.
 */
-layerPrototype.applyAll = function(property, value) {
+layerPrototype.applyAll = layerPrototype.applyPropertyAll = function(property, value) {
 	
 	var properties = this.properties;
 	var index = properties.indexOf(property);
@@ -564,6 +564,7 @@ layerPrototype.applyAll = function(property, value) {
 	
 }
 layerPrototype.removePropertyAll = function(property) {
+	var properties = this.properties;
 	var index = properties.indexOf(property);
 	if(index === -1)
 		return;
@@ -574,8 +575,8 @@ layerPrototype.removePropertyAll = function(property) {
 	
 	for(i = 0; i < length; ++i) {
 		motion = motions[i];
-		delete _motion[property];
-		delete _motion[property + sAuto];
+		delete motion[property];
+		delete motion[property + sAuto];
 	}	
 	properties.splice(index, 1);
 	
@@ -1116,7 +1117,8 @@ timelinePrototype.getLayer = function(layer) {
 	var is_string = (t === "string");
 	var _layer;
 	if(t === "undefined")
-		throw new Error("No Layer");
+		return;
+		//throw new Error("No Layer");
 	
 	for(var i = 0; i < layers.length; ++i) {
 		_layer = layers[i];
@@ -1265,7 +1267,8 @@ timelinePrototype.initTimer = function() {
 */
 animation.Timeline.prototype.resetStyle = function() {
 	console.debug("RESET");
-	daylight(".daylightAnimationLayer").removeClass("animationStart");
+	this.dl_object.find(".daylightAnimationLayer").removeClass("animationStart");
+	this.dl_object.removeClass("animationStart");
 	var style = daylight(".daylightAnimation"+this.id+"Style, .daylightAnimation"+this.id+"InitStyle");
 	
 	console.log(style);
@@ -1405,7 +1408,8 @@ timelinePrototype.reset = function() {
 }
 timelinePrototype.stop = function() {
 	this.finish();
-	daylight(".daylightAnimationLayer").removeClass("animationStart");
+	this.dl_object.find(".daylightAnimationLayer").removeClass("animationStart");
+	this.dl_object.removeClass("animationStart");
 }
 /**
 *
@@ -1427,9 +1431,12 @@ timelinePrototype.initCount = function() {
 */
 timelinePrototype.start = function() {
 	console.log("START TIMELINE totalTime : " + this.totalTime);
-	var dlLayer = daylight(".daylightAnimationLayer");
+	var dlLayer = this.dl_object.find(".daylightAnimationLayer");
 	dlLayer.addClass("animationStart");
 	dlLayer.removeClass("animationPause");
+	this.dl_object.addClass("animationStart");
+	this.dl_object.removeClass("animationPause");
+	
 	this.initCount();
 	
 	this.startTime = this.prevTime = Date.now();
@@ -1448,7 +1455,10 @@ timelinePrototype.start = function() {
 */
 timelinePrototype.pause = function() {
 	console.log("PAUSE TIMELINE");
-	daylight(".daylightAnimationLayer").toggleClass("animationPause");
+	var dlLayer = this.dl_object.find(".daylightAnimationLayer");
+	dlLayer.toggleClass("animationPause");
+	this.dl_object.toggleClass("animationPause");
+
 	this.is_pause = !this.is_pause;
 	if(!this.is_pause) {
 		this.prevTime = Date.now();
@@ -1460,152 +1470,6 @@ timelinePrototype.showAnimationBar = function() {
 	
 }
 
-timelinePrototype.export = timelinePrototype.exportToJSON = function(is_object, is_minify) {
-	var id = "";
-	var dl_object = this.dl_object;
-	var element = dl_object.get(0);
-	this.stop();
-	var layers = this.layers;
-	var layerLength = layers.length;
-	for(var i = 0; i < layerLength; ++i)
-		layers[i].timer(0);
-	
-
-
-
-	var json = this._exportToJSON(element);
-	json.ss = this.scenes;
-	json.tt = this.totalTime;
-	if(is_object)
-		return json;
-	return JSON.stringify(json);
-	
-};
-(function() {
-	var browserPrefix = CONSTANT.browserPrefix;
-	var NO_CHILD = ["IMG"];
-	var EXPORT_PROPERTIES = {"opacity":1, "box-sizing":"content-box", width:"0px", height:"0px" , "border-radius":"0px", "color":"rgb(255, 255, 255)", position:"static"};
-	var POS = ["left","top", "right", "bottom"];
-	var BACKGROUND = "background-";
-	EXPORT_PROPERTIES[BACKGROUND + "color"] = "rgba(0, 0, 0, 0)";
-	EXPORT_PROPERTIES[BACKGROUND + "image"] = "none";
-	EXPORT_PROPERTIES[BACKGROUND + "size"] = "auto";
-	EXPORT_PROPERTIES[BACKGROUND + "position"] = "0% 0%";
-
-	EXPORT_PROPERTIES["margin"] = "0px none rgb(0, 0, 0, 0)";
-	EXPORT_PROPERTIES["padding"] = "0px";
-	EXPORT_PROPERTIES["border"] = "";
-	for(var i = 0; i < 4; ++i) {
-		//EXPORT_PROPERTIES["border-"+ POS[i]] = {has:"0px"};
-		//EXPORT_PROPERTIES["padding-"+ POS[i]] = "0px";
-		//EXPORT_PROPERTIES["margin-"+ POS[i]] = "0px";
-		EXPORT_PROPERTIES[POS[i]] = "auto";
-	}
-	var prefix;
-	for(var i = 0; i < browserPrefix.length; ++i) {
-		prefix = browserPrefix[i];
-		//EXPORT_PROPERTIES[prefix + "transform"] = "none";
-		//EXPORT_PROPERTIES[prefix + "transform-origin"] = "";
-	}
-	var _lengthObject = function(obj) {
-		var count = 0;
-		for(var i in obj) {++count;}
-		return count;
-	}
-	var _exportStyle = function(element) {
-		var exportStyle = {};
-		var styles = window.getComputedStyle(element);
-		try {		
-			for(var property in EXPORT_PROPERTIES) {
-	
-				var propertyValue = styles[property];
-				var propertyDefaultValue = EXPORT_PROPERTIES[property];
-				if(typeof propertyValue === "undefined" || propertyValue === "" || propertyValue === propertyDefaultValue)
-					continue;
-				
-				exportStyle[property] = propertyValue;
-			}
-			if(!exportStyle.position || exportStyle.postion === "static")
-				exportStyle.position = "relative";
-		} catch (e){
-			console.log(element, "type : " + element.nodeType, property);
-		}			
-		return exportStyle;
-	}
-	var _exportCheckRepeatStyle = function(style, motion) {
-		for(var property in style) {
-			if(motion[property] === style[property])
-				delete style[property];
-				
-			if(property.indexOf("transform-origin")) {
-				if(!motion.hasOwnProperty("motion")) {
-					motion.origin = style[property];
-				}
-				delete style[property];
-			}
-		}
-	}
-	timelinePrototype._exportToJSON = function(element) {
-		var className = element.className;
-		className = className.replace("daylightAnimationLayer", "");
-		className = className.trim();
-		//n name
-		//i id
-		//ln layer-name
-		//ms motions
-		//p properties
-		//tt totalTime
-		//cn childNodes
-		//s style
-		var json = {n:element.nodeName, i:element.id, cn:className};
-		var layerName = element.getAttribute("layer-name");
-		if(layerName !== null && layerName !== "")
-			json.ln = layerName;
-		var node, value;
-		switch(json.name) {
-		case "IMG": json.src = element.src;break;
-		}
-		
-		var layer = this.getLayer(element);
-
-		if(layer) {
-			json.ms = layer.motions;
-			json.tt = layer.totalTime;
-			json.p = layer.properties;
-			layer.optimize();
-		}
-	
-		var childNodes = element.childNodes;
-		var length = childNodes && childNodes.length || 0; 
-		
-		if(length !== 0)
-			json.cns = [];
-		
-		if(daylight.hasClass(element, "day-text-editable")) {
-			json.cns = [element.innerHTML];
-		} else {
-			for(var i = 0; i < length; ++i) {
-				node = childNodes[i];
-				//주석
-				if(node.nodeType === 8)
-					continue;
-				if(node.nodeType === 3)
-					continue;
-				value = this._exportToJSON(childNodes[i]);
-				if(value) json.cns.push(value)
-			}
-		}
-		json.s = _exportStyle(element);
-		if(json.ms && json.ms[0] && json.ms[0].time === 0) {
-			_exportCheckRepeatStyle(json.s, json.ms[0]);
-		}
-		if(_lengthObject(json.s) === 0)
-			delete json.s;
-			
-		
-		return json;
-	}
-}());
 
 
 
@@ -1906,6 +1770,7 @@ daylight.animation = animation;
 		var totalTime = json.tt || json.totalTime || 0;
 		var properties = json.p || json.properties || [];
 		var style = json.s || json.style || {};
+
 		
 		layer.properties = properties;
 		layer.motions = motions;
@@ -1940,11 +1805,11 @@ daylight.animation = animation;
 		var name = json.n || json.name;
 		var motions = json.ms || json.motions || [];
 		var layerName = json.ln || json.layerName || -1;
-
+		var is_fold = json.f;//프로젝트용
 			
 		if(!name)
 			return errorMessage("Nonamed 잘못된 형식입니다.");
-			
+		
 		var id = json.i || json.id;
 		var className = json.cn || json.className;
 		var style = json.s || json.style || {};
@@ -1954,6 +1819,10 @@ daylight.animation = animation;
 		
 		element.setAttribute("style", style);
 		element.setAttribute("data-style", style);
+
+		if(is_fold)
+			element.setAttribute("fold", "fold");
+			
 		if(layerName !== -1)
 			element.setAttribute("layer-name", layerName);	
 		return element;
@@ -2066,6 +1935,9 @@ if(action === "tx" || action === "ty" || action === "tz") {
 	}
 }
 */
+	transform.prototype.getObject = function(prefix) {
+		
+	}
 	transform.prototype.get = function(prefix) {
 		var list = this.list;
 		var value;
@@ -2082,18 +1954,22 @@ if(action === "tx" || action === "ty" || action === "tz") {
 				continue;
 				
 			transform = transformList[name];
-			nOrder = this.oOrder[name] || 20;
+
 			
 			value = transform.replace("?", list[name]);
 			if(!this.oOrder.hasOwnProperty(name)) {
 				ret.push(value);
+				//console.debug(name, value);
+
 			} else {
-				nOrder = this.oOrder[name];
+				nOrder = this.oOrder[name] || 20;
 				nOrderIndex = 0;
+				aOrderLength = aOrder.length;
 				for(var i = 0; i < aOrderLength; ++i) {
 					if(nOrder > aOrder[i])
 						nOrderIndex = i + 1;
 				}
+				//console.debug(nOrderIndex);
 				aOrder.splice(nOrderIndex, 0, nOrder);
 				ret.splice(nOrderIndex, 0, value);
 			}

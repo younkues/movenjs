@@ -31,6 +31,7 @@
 		var totalTime = json.tt || json.totalTime || 0;
 		var properties = json.p || json.properties || [];
 		var style = json.s || json.style || {};
+
 		
 		layer.properties = properties;
 		layer.motions = motions;
@@ -65,11 +66,11 @@
 		var name = json.n || json.name;
 		var motions = json.ms || json.motions || [];
 		var layerName = json.ln || json.layerName || -1;
-
+		var is_fold = json.f;//프로젝트용
 			
 		if(!name)
 			return errorMessage("Nonamed 잘못된 형식입니다.");
-			
+		
 		var id = json.i || json.id;
 		var className = json.cn || json.className;
 		var style = json.s || json.style || {};
@@ -79,6 +80,10 @@
 		
 		element.setAttribute("style", style);
 		element.setAttribute("data-style", style);
+
+		if(is_fold)
+			element.setAttribute("fold", "fold");
+			
 		if(layerName !== -1)
 			element.setAttribute("layer-name", layerName);	
 		return element;

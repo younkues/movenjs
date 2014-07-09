@@ -95,7 +95,9 @@ timelinePrototype.export = timelinePrototype.exportToJSON = function(is_object, 
 		//tt totalTime
 		//cn childNodes
 		//s style
-		var json = {n:element.nodeName, i:element.id, cn:className};
+		//f fold
+		
+		var json = {n:element.nodeName, i:element.id, cn:className, f:(element.getAttribute("fold") === "fold") ? 1 : 0};
 		var layerName = element.getAttribute("layer-name");
 		if(layerName !== null && layerName !== "")
 			json.ln = layerName;

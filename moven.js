@@ -540,7 +540,7 @@ layerPrototype.hasProperty = function(index, property) {
 	@return {motion} time 이전의 property를 가지고 있는 모션을 반환
 	@desc time 이전의 property를 가지고 있는 모션을 찾아준다.
 */
-layerPrototype.applyAll = function(property, value) {
+layerPrototype.applyAll = layerPrototype.applyPropertyAll = function(property, value) {
 	
 	var properties = this.properties;
 	var index = properties.indexOf(property);
@@ -564,6 +564,7 @@ layerPrototype.applyAll = function(property, value) {
 	
 }
 layerPrototype.removePropertyAll = function(property) {
+	var properties = this.properties;
 	var index = properties.indexOf(property);
 	if(index === -1)
 		return;
@@ -574,8 +575,8 @@ layerPrototype.removePropertyAll = function(property) {
 	
 	for(i = 0; i < length; ++i) {
 		motion = motions[i];
-		delete _motion[property];
-		delete _motion[property + sAuto];
+		delete motion[property];
+		delete motion[property + sAuto];
 	}	
 	properties.splice(index, 1);
 	
@@ -1116,7 +1117,8 @@ timelinePrototype.getLayer = function(layer) {
 	var is_string = (t === "string");
 	var _layer;
 	if(t === "undefined")
-		throw new Error("No Layer");
+		return;
+		//throw new Error("No Layer");
 	
 	for(var i = 0; i < layers.length; ++i) {
 		_layer = layers[i];
@@ -1265,7 +1267,8 @@ timelinePrototype.initTimer = function() {
 */
 animation.Timeline.prototype.resetStyle = function() {
 	console.debug("RESET");
-	daylight(".daylightAnimationLayer").removeClass("animationStart");
+	this.dl_object.find(".daylightAnimationLayer").removeClass("animationStart");
+	this.dl_object.removeClass("animationStart");
 	var style = daylight(".daylightAnimation"+this.id+"Style, .daylightAnimation"+this.id+"InitStyle");
 	
 	console.log(style);
@@ -1405,7 +1408,8 @@ timelinePrototype.reset = function() {
 }
 timelinePrototype.stop = function() {
 	this.finish();
-	daylight(".daylightAnimationLayer").removeClass("animationStart");
+	this.dl_object.find(".daylightAnimationLayer").removeClass("animationStart");
+	this.dl_object.removeClass("animationStart");
 }
 /**
 *
@@ -1427,9 +1431,12 @@ timelinePrototype.initCount = function() {
 */
 timelinePrototype.start = function() {
 	console.log("START TIMELINE totalTime : " + this.totalTime);
-	var dlLayer = daylight(".daylightAnimationLayer");
+	var dlLayer = this.dl_object.find(".daylightAnimationLayer");
 	dlLayer.addClass("animationStart");
 	dlLayer.removeClass("animationPause");
+	this.dl_object.addClass("animationStart");
+	this.dl_object.removeClass("animationPause");
+	
 	this.initCount();
 	
 	this.startTime = this.prevTime = Date.now();
@@ -1448,7 +1455,10 @@ timelinePrototype.start = function() {
 */
 timelinePrototype.pause = function() {
 	console.log("PAUSE TIMELINE");
-	daylight(".daylightAnimationLayer").toggleClass("animationPause");
+	var dlLayer = this.dl_object.find(".daylightAnimationLayer");
+	dlLayer.toggleClass("animationPause");
+	this.dl_object.toggleClass("animationPause");
+
 	this.is_pause = !this.is_pause;
 	if(!this.is_pause) {
 		this.prevTime = Date.now();
