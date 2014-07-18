@@ -933,7 +933,7 @@ layerPrototype.getTimeMotion = function(time, is_start, is_not_transition) {
 		next = this.getNextMotion(property, time, -1);
 		
 		if(!prev.hasOwnProperty(property)) {
-			if(animation.Transform.list.hasOwnProperty(property))
+			if(transformList.hasOwnProperty(property))
 				continue;
 			console.log("add");
 			
@@ -959,9 +959,6 @@ layerPrototype.getTimeMotion = function(time, is_start, is_not_transition) {
 
 		value = this.getTimeValue(time, property, prev, next);
 		
-		if(property === "opacity") {
-			//console.log(property, prev, next, value);
-		}
 		if(value === "transition") {
 			if(property === "display") {
 				motions[property] = prev[property];
@@ -1728,12 +1725,14 @@ daylight.animation = animation;
 						return color(prevMotion, nextMotion, prevTime, nextTime);
 						break;
 					default:
+						console.log(property, value);
 						return "transition";
 				}
 			}
 		} catch(e) {
 			console.error("time :" + time, "property : " + property, "value : " + value, e);
 		}
+		console.log(property, value);
 		return value;
 	}
 })(daylight.animation);

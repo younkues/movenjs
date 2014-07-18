@@ -242,12 +242,14 @@
 						return color(prevMotion, nextMotion, prevTime, nextTime);
 						break;
 					default:
+						console.log(property, value);
 						return "transition";
 				}
 			}
 		} catch(e) {
 			console.error("time :" + time, "property : " + property, "value : " + value, e);
 		}
+		console.log(property, value);
 		return value;
 	}
 })(daylight.animation);

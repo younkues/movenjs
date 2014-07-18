@@ -1,4 +1,4 @@
-timelinePrototype.export = timelinePrototype.exportToJSON = function(is_object, is_minify) {
+timelinePrototype.export = timelinePrototype.exportToJSON = function(is_object, has_style) {
 	var id = "";
 	var dl_object = this.dl_object;
 	var element = dl_object.get(0);
@@ -7,11 +7,12 @@ timelinePrototype.export = timelinePrototype.exportToJSON = function(is_object, 
 	var layerLength = layers.length;
 	for(var i = 0; i < layerLength; ++i)
 		layers[i].timer(0);
-	
+	if(has_style === undefined)
+		has_style = true;
 
 
 
-	var json = this._exportToJSON(element);
+	var json = this._exportToJSON(element, has_style);
 	json.ss = this.scenes;
 	json.tt = this.totalTime;
 	if(is_object)
@@ -30,9 +31,9 @@ timelinePrototype.export = timelinePrototype.exportToJSON = function(is_object, 
 	EXPORT_PROPERTIES[BACKGROUND + "size"] = "auto";
 	EXPORT_PROPERTIES[BACKGROUND + "position"] = "0% 0%";
 
-	EXPORT_PROPERTIES["margin"] = "0px none rgb(0, 0, 0, 0)";
+	EXPORT_PROPERTIES["margin"] = "0px";
 	EXPORT_PROPERTIES["padding"] = "0px";
-	EXPORT_PROPERTIES["border"] = "";
+	EXPORT_PROPERTIES["border"] = "0px none rgb(0, 0, 0)";
 	for(var i = 0; i < 4; ++i) {
 		//EXPORT_PROPERTIES["border-"+ POS[i]] = {has:"0px"};
 		//EXPORT_PROPERTIES["padding-"+ POS[i]] = "0px";
@@ -58,13 +59,13 @@ timelinePrototype.export = timelinePrototype.exportToJSON = function(is_object, 
 	
 				var propertyValue = styles[property];
 				var propertyDefaultValue = EXPORT_PROPERTIES[property];
-				if(typeof propertyValue === "undefined" || propertyValue === "" || propertyValue === propertyDefaultValue)
+				if(typeof propertyValue === "undefined" || propertyValue === "" || propertyValue == propertyDefaultValue)
 					continue;
 				
 				exportStyle[property] = propertyValue;
 			}
 			if(!exportStyle.position || exportStyle.postion === "static")
-				exportStyle.position = "relative";
+				exportStyle.position = "absolute";
 		} catch (e){
 			console.log(element, "type : " + element.nodeType, property);
 		}			
@@ -75,7 +76,7 @@ timelinePrototype.export = timelinePrototype.exportToJSON = function(is_object, 
 			if(motion[property] === style[property])
 				delete style[property];
 				
-			if(property.indexOf("transform-origin")) {
+			if(property.indexOf("transform-origin") != -1) {
 				if(!motion.hasOwnProperty("motion")) {
 					motion.origin = style[property];
 				}
@@ -83,7 +84,7 @@ timelinePrototype.export = timelinePrototype.exportToJSON = function(is_object, 
 			}
 		}
 	}
-	timelinePrototype._exportToJSON = function(element) {
+	timelinePrototype._exportToJSON = function(element, has_style) {
 		var className = element.className;
 		className = className.replace("daylightAnimationLayer", "");
 		className = className.trim();
@@ -131,11 +132,11 @@ timelinePrototype.export = timelinePrototype.exportToJSON = function(is_object, 
 					continue;
 				if(node.nodeType === 3)
 					continue;
-				value = this._exportToJSON(childNodes[i]);
+				value = this._exportToJSON(childNodes[i], has_style);
 				if(value) json.cns.push(value)
 			}
 		}
-		json.s = _exportStyle(element);
+		json.s = has_style ?_exportStyle(element) : {};
 		if(json.ms && json.ms[0] && json.ms[0].time === 0) {
 			_exportCheckRepeatStyle(json.s, json.ms[0]);
 		}
